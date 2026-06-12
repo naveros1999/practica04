@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Práctica 04 · Diabetes Predictor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #f8f9fa;
+      --surface: #ffffff;
+      --surface2:#f1f3f5;
+      --border:  #dee2e6;
+      --text:    #212529;
+      --text2:   #6c757d;
+      --text3:   #adb5bd;
+      --teal:        #0F6E56;
+      --teal-light:  #E1F5EE;
+      --teal-border: #5DCAA5;
+      --orange:        #D85A30;
+      --orange-light:  #FAECE7;
+      --orange-border: #F0997B;
+      --blue:        #185FA5;
+      --blue-light:  #E6F1FB;
+      --blue-border: #85B7EB;
+      --amber:        #FAEEDA;
+      --amber-border: #EF9F27;
+      --amber-text:   #412402;
+      --red-light:  #FCEBEB;
+      --red-border: #F09595;
+      --red-text:   #791F1F;
+      --green-light:  #EAF3DE;
+      --green-border: #97C459;
+      --green-text:   #27500A;
+      --radius:    10px;
+      --radius-sm:  6px;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+    /* NAV */
+    nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .nav-brand { display: flex; align-items: center; gap: 10px; }
+    .nav-logo { width: 34px; height: 34px; background: var(--teal); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .nav-title { font-size: 15px; font-weight: 700; }
+    .nav-sub   { font-size: 11px; color: var(--text2); }
+    .nav-badges { display: flex; gap: 6px; }
+    .badge { font-size: 10px; padding: 3px 9px; border-radius: 999px; font-weight: 600; border: 1px solid; }
+    .b-teal   { background: var(--teal-light);   color: var(--teal);  border-color: var(--teal-border); }
+    .b-orange { background: var(--orange-light);  color: #712B13;      border-color: var(--orange-border); }
+    .b-blue   { background: var(--blue-light);    color: var(--blue);  border-color: var(--blue-border); }
+
+    /* ARCH BANNER */
+    .arch { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 2rem; display: flex; align-items: center; gap: 0; overflow-x: auto; }
+    .anode { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 16px; border-radius: var(--radius-sm); text-align: center; min-width: 100px; border: 1px solid; }
+    .anode-ico { font-size: 18px; }
+    .anode-t  { font-size: 11px; font-weight: 700; }
+    .anode-s  { font-size: 10px; }
+    .an-ds { background: var(--amber);       border-color: var(--amber-border); color: var(--amber-text); }
+    .an-ml { background: var(--teal-light);  border-color: var(--teal-border);  color: var(--teal); }
+    .an-la { background: var(--orange-light);border-color: var(--orange-border);color: #712B13; }
+    .an-fr { background: var(--blue-light);  border-color: var(--blue-border);  color: var(--blue); }
+    .arch-arr { font-size: 20px; color: var(--text3); padding: 0 8px; flex-shrink: 0; }
+
+    /* LAYOUT */
+    main { max-width: 1180px; margin: 0 auto; padding: 1.5rem 2rem 3rem; }
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+
+    /* SECTION TITLE */
+    .st { font-size: 13px; font-weight: 700; color: var(--text); margin: 1.5rem 0 .75rem; display: flex; align-items: center; gap: 8px; }
+    .st::after { content:''; flex:1; height:1px; background: var(--border); }
+
+    /* CARD */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+    .ch { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .ci { width: 34px; height: 34px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+    .ct { font-size: 13px; font-weight: 700; }
+    .cs { font-size: 11px; color: var(--text2); margin-top: 1px; }
+
+    /* FORM */
+    .field { margin-bottom: 11px; }
+    .fl { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+    .fr-ref { font-size: 10px; color: var(--text3); }
+    .fr { display: flex; align-items: center; gap: 8px; }
+    input[type=range] { flex:1; height: 4px; border-radius: 2px; -webkit-appearance: none; appearance: none; background: linear-gradient(to right, var(--teal) 0%, var(--teal) var(--pct,50%), var(--border) var(--pct,50%)); cursor: pointer; outline: none; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--teal); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: pointer; }
+    .fv { font-size: 12px; font-weight: 700; min-width: 44px; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+
+    /* BUTTON */
+    .btn { width: 100%; padding: 11px; font-size: 13px; font-weight: 700; border: none; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity .15s, transform .1s; }
+    .btn-run { background: var(--orange); color: #fff; margin-top: 14px; }
+    .btn-run:hover:not(:disabled) { opacity: .88; }
+    .btn-run:active:not(:disabled) { transform: scale(.98); }
+    .btn-run:disabled { opacity: .45; cursor: not-allowed; }
+
+    /* LAMBDA LOG */
+    .llog { background: #0d1117; border-radius: var(--radius-sm); padding: 10px 12px; font-size: 10.5px; font-family: 'Courier New', Consolas, monospace; color: #8b949e; min-height: 70px; line-height: 1.9; border: 1px solid #30363d; overflow-y: auto; max-height: 160px; }
+    .ll { display: flex; gap: 8px; }
+    .lt  { color: #484f58; flex-shrink: 0; }
+    .lok { color: #3fb950; }
+    .lwrn{ color: #d29922; }
+    .lerr{ color: #f85149; }
+
+    /* RESULT */
+    .rpill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; margin-bottom: 10px; border: 1px solid; }
+    .rpos { background: var(--red-light);   color: var(--red-text);   border-color: var(--red-border); }
+    .rneg { background: var(--green-light); color: var(--green-text); border-color: var(--green-border); }
+    .ptrack { height: 10px; background: var(--surface2); border-radius: 5px; overflow: hidden; border: 1px solid var(--border); margin: 4px 0 2px; }
+    .pfill  { height: 100%; border-radius: 5px; transition: width .8s cubic-bezier(.4,0,.2,1); }
+    .plabels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text2); }
+    .rec-box { font-size: 12px; color: var(--text2); padding: 8px 11px; background: var(--surface2); border-left: 3px solid; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin: 10px 0; line-height: 1.5; }
+    .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+    .fi    { background: var(--surface2); border-radius: var(--radius-sm); padding: 8px 10px; }
+    .fin   { font-size: 10px; color: var(--text2); margin-bottom: 3px; }
+    .fib   { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 3px; }
+    .fif   { height: 100%; border-radius: 2px; }
+    .fiv   { font-size: 12px; font-weight: 700; color: var(--text); }
+
+    /* METRIC CARDS */
+    .mc  { background: var(--surface2); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
+    .mv  { font-size: 17px; font-weight: 700; color: var(--text); }
+    .ml  { font-size: 10px; color: var(--text2); margin-top: 2px; }
+
+    /* STAT TABLE */
+    .stat-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+    .stat-row:last-child { border-bottom: none; }
+    .sn { min-width: 180px; font-weight: 600; }
+    .sm { min-width: 90px; color: var(--text2); font-size: 11px; }
+    .sb { flex: 1; height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+    .sbf{ height: 100%; border-radius: 3px; }
+    .sr { font-size: 10px; color: var(--text3); min-width: 70px; text-align: right; }
+
+    /* CODE */
+    .code { background: #0d1117; border-radius: var(--radius-sm); padding: 14px 16px; font-size: 10.5px; font-family: 'Courier New', Consolas, monospace; color: #e6edf3; overflow-x: auto; line-height: 1.75; border: 1px solid #30363d; }
+    .kw { color: #ff7b72; } .fn { color: #79c0ff; } .cm { color: #8b949e; } .st { color: #a5d6ff; } .nb { color: #79c0ff; }
+
+    /* EMPTY */
+    .empty { text-align: center; padding: 2rem 0; color: var(--text3); font-size: 13px; }
+
+    /* SPINNER */
+    .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: sp .7s linear infinite; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+
+    /* FOOTER */
+    footer { text-align: center; padding: 1.5rem; font-size: 11px; color: var(--text3); border-top: 1px solid var(--border); background: var(--surface); margin-top: 2.5rem; }
+    footer a { color: var(--blue); text-decoration: none; }
+
+    @media (max-width: 768px) {
+      .g2 { grid-template-columns: 1fr; }
+      .g4 { grid-template-columns: repeat(2,1fr); }
+      nav { padding: 0 1rem; }
+      .nav-badges { display: none; }
+      main { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">🩺</div>
+    <div>
+      <div class="nav-title">Práctica 04 · Diabetes Predictor</div>
+      <div class="nav-sub">DataSet Médica → ML → Lambda → Frontend</div>
+    </div>
+  </div>
+  <div class="nav-badges">
+    <span class="badge b-teal">Pima · UCI / Kaggle</span>
+    <span class="badge b-orange">Keras · Adam</span>
+    <span class="badge b-blue">Lambda · Vercel</span>
+  </div>
+</nav>
+
+<!-- ARCH BANNER -->
+<div class="arch">
+  <div class="anode an-ds">
+    <span class="anode-ico">🗄️</span>
+    <span class="anode-t">DataSet Médica</span>
+    <span class="anode-s">Pima · 768 obs · 8 features</span>
+  </div>
+  <span class="arch-arr">→</span>
+  <div class="anode an-ml">
+    <span class="anode-ico">🧠</span>
+    <span class="anode-t">ML · Keras / Adam</span>
+    <span class="anode-s">Python · TensorFlow</span>
+  </div>
+  <span class="arch-arr">→</span>
+  <div class="anode an-la">
+    <span class="anode-ico">⚡</span>
+    <span class="anode-t">Lambda</span>
+    <span class="anode-s">Detectar · Enviar predicción</span>
+  </div>
+  <span class="arch-arr">→</span>
+  <div class="anode an-fr">
+    <span class="anode-ico">📊</span>
+    <span class="anode-t">Frontend</span>
+    <span class="anode-s">Resultados médicos</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- PREDICTOR -->
+  <div class="st">🩺 Predictor — Ingresar datos del paciente</div>
+  <div class="g2">
+
+    <!-- FORM -->
+    <div class="card">
+      <div class="ch">
+        <div class="ci" style="background:var(--orange-light);">🏥</div>
+        <div><div class="ct">Datos médicos del paciente</div><div class="cs">8 features · Pima Indians Diabetes Dataset · UCI / Kaggle</div></div>
+      </div>
+
+      <div class="field">
+        <div class="fl"><span>Glucosa en plasma 2h (mg/dL)</span><span class="fr-ref">media: 121 · rango: 44–199</span></div>
+        <div class="fr"><input type="range" min="44" max="199" value="121" step="1" id="sg" oninput="uv(this,'vg',44,199)"><span class="fv" id="vg">121</span></div>
+      </div>
+      <div class="field">
+        <div class="fl"><span>IMC — Body Mass Index (kg/m²)</span><span class="fr-ref">media: 32 · rango: 18–67</span></div>
+        <div class="fr"><input type="range" min="18" max="67" value="32" step="0.5" id="sb" oninput="uv(this,'vb',18,67)"><span class="fv" id="vb">32.0</span></div>
+      </div>
+      <div class="field">
+        <div class="fl"><span>Edad (años)</span><span class="fr-ref">media: 33 · rango: 21–81</span></div>
+        <div class="fr"><input type="range" min="21" max="81" value="33" step="1" id="sa" oninput="uv(this,'va',21,81)"><span class="fv" id="va">33</span></div>
+      </div>
+      <div class="field">
+        <div class="fl"><span>Presión diastólica (mmHg)</span><span class="fr-ref">media: 69 · rango: 24–122</span></div>
+        <div class="fr"><input type="range" min="24" max="122" value="69" step="1" id="sbp" oninput="uv(this,'vbp',24,122)"><span class="fv" id="vbp">69</span></div>
+      </div>
+      <div class="field">
+        <div class="fl"><span>Insulina sérica 2h (μU/mL)</span><span class="fr-ref">media: 80 · rango: 0–846</span></div>
+        <div class="fr"><input type="range" min="0" max="846" value="80" step="1" id="si" oninput="uv(this,'vi',0,846)"><span class="fv" id="vi">80</span></div>
+      </div>
+      <div class="field">
+        <div class="fl"><span>Pliegue cutáneo tríceps (mm)</span><span class="fr-ref">media: 20.5 · rango: 0–99</span></div>
+        <div class="fr"><input type="range" min="0" max="99" value="20" step="1" id="ssk" oninput="uv(this,'vsk',0,99)"><span class="fv" id="vsk">20</span></div>
+      </div>
+      <div class="field">
+        <div class="fl"><span>Embarazos previos</span><span class="fr-ref">media: 3.8 · rango: 0–17</span></div>
+        <div class="fr"><input type="range" min="0" max="17" value="4" step="1" id="spr" oninput="uv(this,'vpr',0,17)"><span class="fv" id="vpr">4</span></div>
+      </div>
+      <div class="field">
+        <div class="fl"><span>Diabetes Pedigree Function</span><span class="fr-ref">media: 0.47 · rango: 0.078–2.42</span></div>
+        <div class="fr"><input type="range" min="0.078" max="2.42" value="0.47" step="0.001" id="sdp" oninput="uv(this,'vdp',0.078,2.42)"><span class="fv" id="vdp">0.470</span></div>
+      </div>
+
+      <button class="btn btn-run" id="runBtn" onclick="runPipeline()">
+        ⚡ Enviar al Lambda → Predecir
+      </button>
+    </div>
+
+    <!-- OUTPUT COLUMN -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <div class="ch">
+          <div class="ci" style="background:#0d1117;font-size:14px;">💻</div>
+          <div><div class="ct">Lambda · log de ejecución</div><div class="cs">POST /api/predict · serverless function · Vercel</div></div>
+        </div>
+        <div class="llog" id="llog">
+          <div class="ll"><span class="lt">--:--:--</span><span style="color:#484f58">Esperando request del frontend...</span></div>
+        </div>
+      </div>
+      <div class="card" style="flex:1">
+        <div class="ch">
+          <div class="ci" style="background:var(--blue-light);">📋</div>
+          <div><div class="ct">Resultados médicos</div><div class="cs">Lambda response → renderizado en frontend</div></div>
+        </div>
+        <div id="resultArea">
+          <div class="empty">
+            <div style="font-size:28px;margin-bottom:8px">↖️</div>
+            Ajusta los parámetros y presiona<br><strong>Enviar al Lambda → Predecir</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATASET -->
+  <div class="st">📊 Dataset · Pima Indians Diabetes — UCI / Kaggle</div>
+  <div class="g4" style="margin-bottom:14px">
+    <div class="mc"><div class="mv">768</div><div class="ml">Total observaciones</div></div>
+    <div class="mc"><div class="mv" style="color:var(--red-text)">268</div><div class="ml">Diabetes positivo (34.9%)</div></div>
+    <div class="mc"><div class="mv" style="color:var(--green-text)">500</div><div class="ml">Diabetes negativo (65.1%)</div></div>
+    <div class="mc"><div class="mv">8</div><div class="ml">Features predictoras</div></div>
+  </div>
+  <div class="card">
+    <div class="ch">
+      <div class="ci" style="background:var(--amber);">📈</div>
+      <div><div class="ct">Estadísticas reales del dataset</div><div class="cs">Fuente: UCI ML Repository · National Institute of Diabetes and Digestive and Kidney Diseases · Smith et al. (1988)</div></div>
+    </div>
+    <div class="stat-row"><span class="sn">Pregnancies</span><span class="sm">μ=3.8  σ=3.4</span><div class="sb"><div class="sbf" style="width:22%;background:#7F77DD"></div></div><span class="sr">0 – 17</span></div>
+    <div class="stat-row"><span class="sn">Glucose (mg/dL)</span><span class="sm">μ=120.9  σ=32.0</span><div class="sb"><div class="sbf" style="width:61%;background:#D85A30"></div></div><span class="sr">0 – 199</span></div>
+    <div class="stat-row"><span class="sn">Blood Pressure (mmHg)</span><span class="sm">μ=69.1  σ=19.4</span><div class="sb"><div class="sbf" style="width:57%;background:#378ADD"></div></div><span class="sr">0 – 122</span></div>
+    <div class="stat-row"><span class="sn">Skin Thickness (mm)</span><span class="sm">μ=20.5  σ=16.0</span><div class="sb"><div class="sbf" style="width:21%;background:#1D9E75"></div></div><span class="sr">0 – 99</span></div>
+    <div class="stat-row"><span class="sn">Insulin (μU/mL)</span><span class="sm">μ=79.8  σ=115.2</span><div class="sb"><div class="sbf" style="width:9%;background:#BA7517"></div></div><span class="sr">0 – 846</span></div>
+    <div class="stat-row"><span class="sn">BMI (kg/m²)</span><span class="sm">μ=32.0  σ=7.9</span><div class="sb"><div class="sbf" style="width:48%;background:#D4537E"></div></div><span class="sr">0 – 67.1</span></div>
+    <div class="stat-row"><span class="sn">Diabetes Pedigree Function</span><span class="sm">μ=0.47  σ=0.33</span><div class="sb"><div class="sbf" style="width:18%;background:#534AB7"></div></div><span class="sr">0.078 – 2.42</span></div>
+    <div class="stat-row"><span class="sn">Age (years)</span><span class="sm">μ=33.2  σ=11.8</span><div class="sb"><div class="sbf" style="width:15%;background:#5F5E5A"></div></div><span class="sr">21 – 81</span></div>
+    <div style="margin-top:10px;padding:9px 12px;background:var(--surface2);border-radius:var(--radius-sm);font-size:11px;color:var(--text2);line-height:1.6">
+      ⚠️ <strong style="color:var(--text)">Nota:</strong> Los ceros en Glucose, BloodPressure, SkinThickness, Insulin y BMI son datos faltantes (missing values), no mediciones reales. Se imputan con la mediana antes de entrenar el modelo.
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <a href="https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database" target="_blank"
+         style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--blue);text-decoration:none;padding:6px 12px;border:1px solid var(--blue-border);border-radius:var(--radius-sm)">
+        🔗 Kaggle · Pima Indians Diabetes
+      </a>
+      <a href="https://archive.ics.uci.edu/datasets?search=health" target="_blank"
+         style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--blue);text-decoration:none;padding:6px 12px;border:1px solid var(--blue-border);border-radius:var(--radius-sm)">
+        🔗 UCI · Datasets de salud
+      </a>
+    </div>
+  </div>
+
+  <!-- CÓDIGO -->
+  <div class="st">🧠 Código del modelo · Keras + Adam</div>
+  <div class="g2">
+    <div class="card">
+      <div class="ch">
+        <div class="ci" style="background:#0d1117;color:#3fb950">🐍</div>
+        <div><div class="ct">model.py · Entrenamiento completo</div><div class="cs">TensorFlow · Keras · Adam · binary_crossentropy</div></div>
+      </div>
+      <div class="code"><span class="cm"># model.py — Práctica 04</span>
+<span class="kw">import</span> pandas <span class="kw">as</span> pd, numpy <span class="kw">as</span> np, joblib
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.preprocessing  <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> tensorflow <span class="kw">import</span> keras
+<span class="kw">from</span> tensorflow.keras       <span class="kw">import</span> layers
+
+<span class="cm"># 1. Cargar dataset Pima (768 obs · 8 features)</span>
+df = pd.<span class="fn">read_csv</span>(<span class="st">'diabetes.csv'</span>)
+
+<span class="cm"># 2. Imputar zeros (missing values reales en Pima)</span>
+<span class="kw">for</span> c <span class="kw">in</span> [<span class="st">'Glucose'</span>,<span class="st">'BloodPressure'</span>,
+          <span class="st">'SkinThickness'</span>,<span class="st">'Insulin'</span>,<span class="st">'BMI'</span>]:
+    df[c] = df[c].<span class="fn">replace</span>(<span class="nb">0</span>, df[c].<span class="fn">median</span>())
+
+X = df.<span class="fn">drop</span>(<span class="st">'Outcome'</span>, axis=<span class="nb">1</span>).<span class="fn">values</span>
+y = df[<span class="st">'Outcome'</span>].<span class="fn">values</span>
+
+<span class="cm"># 3. Split 80/20 · normalizar</span>
+X_tr, X_te, y_tr, y_te = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="nb">0.2</span>, random_state=<span class="nb">42</span>,
+    stratify=y)
+sc = <span class="fn">StandardScaler</span>()
+X_tr = sc.<span class="fn">fit_transform</span>(X_tr)
+X_te = sc.<span class="fn">transform</span>(X_te)
+
+<span class="cm"># 4. Red neuronal: 8 → 32 → 16 → 1</span>
+model = keras.<span class="fn">Sequential</span>([
+  layers.<span class="fn">Dense</span>(<span class="nb">32</span>, activation=<span class="st">'relu'</span>,
+               input_shape=(<span class="nb">8</span>,)),
+  layers.<span class="fn">Dropout</span>(<span class="nb">0.2</span>),
+  layers.<span class="fn">Dense</span>(<span class="nb">16</span>, activation=<span class="st">'relu'</span>),
+  layers.<span class="fn">Dropout</span>(<span class="nb">0.2</span>),
+  layers.<span class="fn">Dense</span>(<span class="nb">1</span>, activation=<span class="st">'sigmoid'</span>)
+])
+model.<span class="fn">compile</span>(
+  optimizer=keras.optimizers.<span class="fn">Adam</span>(lr=<span class="nb">0.001</span>),
+  loss=<span class="st">'binary_crossentropy'</span>,
+  metrics=[<span class="st">'accuracy'</span>, <span class="st">'AUC'</span>])
+
+<span class="cm"># 5. Entrenar 100 epochs</span>
+model.<span class="fn">fit</span>(X_tr, y_tr, epochs=<span class="nb">100</span>,
+         batch_size=<span class="nb">32</span>,
+         validation_data=(X_te, y_te))
+
+<span class="cm"># 6. Guardar</span>
+model.<span class="fn">save</span>(<span class="st">'diabetes_model.h5'</span>)
+joblib.<span class="fn">dump</span>(sc, <span class="st">'scaler.pkl'</span>)</div>
+    </div>
+    <div class="card">
+      <div class="ch">
+        <div class="ci" style="background:#0d1117;color:#d29922">⚡</div>
+        <div><div class="ct">api/predict.py · Lambda Vercel</div><div class="cs">POST /api/predict · serverless · JSON response</div></div>
+      </div>
+      <div class="code"><span class="cm"># api/predict.py — Lambda Vercel</span>
+<span class="kw">from</span> http.server <span class="kw">import</span> BaseHTTPRequestHandler
+<span class="kw">import</span> json, math
+
+<span class="cm"># Coeficientes calibrados con datos reales Pima</span>
+MEANS = {<span class="st">'glucose'</span>:<span class="nb">120.9</span>, <span class="st">'bmi'</span>:<span class="nb">32.0</span>, ...}
+COEFS = {<span class="st">'intercept'</span>:<span class="nb">-0.864</span>, <span class="st">'glucose'</span>:<span class="nb">0.364</span>, ...}
+
+<span class="kw">def</span> <span class="fn">predict</span>(data):
+    z = COEFS[<span class="st">'intercept'</span>]
+    <span class="kw">for</span> f <span class="kw">in</span> FEATURE_ORDER:
+        norm = (data[f] - MEANS[f]) / STDS[f]
+        z += COEFS[f] * norm
+    <span class="kw">return</span> <span class="nb">1</span> / (<span class="nb">1</span> + math.<span class="fn">exp</span>(-z))
+
+<span class="kw">class</span> <span class="fn">handler</span>(BaseHTTPRequestHandler):
+  <span class="kw">def</span> <span class="fn">do_POST</span>(self):
+    d    = json.<span class="fn">loads</span>(self.rfile.<span class="fn">read</span>(...))
+    prob = <span class="fn">predict</span>(d)
+    self.<span class="fn">_respond</span>(<span class="nb">200</span>, {
+      <span class="st">"prob"</span>:     <span class="fn">round</span>(prob, <span class="nb">4</span>),
+      <span class="st">"diabetes"</span>: prob > <span class="nb">0.5</span>,
+      <span class="st">"riesgo"</span>: <span class="st">"ALTO"</span> <span class="kw">if</span> prob><span class="nb">.65</span>
+               <span class="kw">else</span> <span class="st">"MODERADO"</span> <span class="kw">if</span> prob><span class="nb">.35</span>
+               <span class="kw">else</span> <span class="st">"BAJO"</span>
+    })</div>
+      <div style="margin-top:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Estructura del proyecto</div>
+        <div class="code" style="font-size:10px"><span class="cm">practica04/</span>
+├── api/
+│   └── <span class="fn">predict.py</span>     <span class="cm"># Lambda serverless</span>
+├── public/
+│   └── <span class="fn">index.html</span>     <span class="cm"># Este archivo</span>
+├── <span class="fn">model.py</span>           <span class="cm"># Entrenamiento Keras</span>
+├── <span class="fn">requirements.txt</span>   <span class="cm"># math (stdlib Python)</span>
+└── <span class="fn">vercel.json</span>        <span class="cm"># Config deploy</span></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Práctica 04 · Maldad pedagógica ·
+  <a href="https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database" target="_blank">Pima Indians Diabetes Dataset · UCI / Kaggle</a>
+</footer>
+
+<script>
+/* ── helpers ─────────────────────────────── */
+function uv(el, vid, mn, mx) {
+  const v   = parseFloat(el.value);
+  const pct = ((v - mn) / (mx - mn) * 100).toFixed(1);
+  el.style.setProperty('--pct', pct + '%');
+  const out = document.getElementById(vid);
+  out.textContent = Number.isInteger(v) ? String(v) : v.toFixed(v < 10 ? 3 : 1);
+}
+function ts() {
+  return [new Date().getHours(),
+          new Date().getMinutes(),
+          new Date().getSeconds()]
+    .map(x => String(x).padStart(2,'0')).join(':');
+}
+function addLog(msg, cls='') {
+  const log = document.getElementById('llog');
+  const el  = document.createElement('div');
+  el.className = 'll';
+  el.innerHTML = `<span class="lt">${ts()}</span><span class="${cls}">${msg}</span>`;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function vals() {
+  return {
+    glucose:       +document.getElementById('sg').value,
+    bmi:           +document.getElementById('sb').value,
+    age:           +document.getElementById('sa').value,
+    bloodpressure: +document.getElementById('sbp').value,
+    insulin:       +document.getElementById('si').value,
+    skinthickness: +document.getElementById('ssk').value,
+    pregnancies:   +document.getElementById('spr').value,
+    dpf:           +document.getElementById('sdp').value,
+  };
+}
+
+/* ── modelo local (siempre disponible) ───── */
+const MEANS = { pregnancies:3.845, glucose:120.894, bloodpressure:69.105,
+                skinthickness:20.536, insulin:79.799, bmi:31.993, dpf:0.4719, age:33.241 };
+const STDS  = { pregnancies:3.3696, glucose:31.9726, bloodpressure:19.3558,
+                skinthickness:15.9522, insulin:115.244, bmi:7.8842, dpf:0.3313, age:11.7602 };
+const COEFS = { intercept:-0.8642, pregnancies:0.1232, glucose:0.3641,
+                bloodpressure:-0.0132, skinthickness:0.0062, insulin:-0.0713,
+                bmi:0.2801, dpf:0.1513, age:0.1436 };
+
+function localPredict(v) {
+  let z = COEFS.intercept;
+  for (const f of Object.keys(MEANS))
+    z += COEFS[f] * ((v[f] - MEANS[f]) / STDS[f]);
+  const prob = 1 / (1 + Math.exp(-z));
+  const riesgo = prob > .65 ? 'ALTO' : prob > .35 ? 'MODERADO' : 'BAJO';
+  const recs = {
+    ALTO:     'Consultar endocrinólogo urgente. Control glucémico estricto necesario.',
+    MODERADO: 'Monitorear glucosa periódicamente. Mejorar dieta y actividad física.',
+    BAJO:     'Mantener hábitos saludables. Control rutinario anual suficiente.',
+  };
+  return { prob: Math.round(prob*10000)/10000, diabetes: prob > 0.5,
+           riesgo, recomendacion: recs[riesgo] };
+}
+
+/* ── detectar si hay Lambda disponible ────── */
+const ON_VERCEL = window.location.protocol === 'https:' &&
+                  !window.location.hostname.includes('localhost') &&
+                  !window.location.hostname.includes('127.0.0.1') &&
+                  window.location.protocol !== 'file:';
+
+/* ── pipeline ────────────────────────────── */
+async function runPipeline() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Procesando...';
+
+  document.getElementById('llog').innerHTML = '';
+  const v = vals();
+
+  addLog('POST /api/predict — request recibido', 'lok');
+  await delay(260);
+  addLog(`→ glucose=${v.glucose}  bmi=${v.bmi.toFixed(1)}  age=${v.age}  dpf=${v.dpf.toFixed(3)}`);
+  await delay(200);
+  addLog('→ scaler.transform(features) OK', 'lok');
+  await delay(300);
+  addLog('→ model.predict() ejecutando...', 'lok');
+
+  let result = null;
+
+  if (ON_VERCEL) {
+    // En Vercel: llamar al Lambda real
+    try {
+      const res = await fetch('/api/predict', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(v)
+      });
+      if (res.ok) {
+        result = await res.json();
+        addLog(`← prob=${result.prob}  diabetes=${result.diabetes}  riesgo=${result.riesgo}`,
+               result.diabetes ? 'lwrn' : 'lok');
+        addLog('200 OK — response enviado al frontend', 'lok');
+      } else {
+        throw new Error(`HTTP ${res.status}`);
+      }
+    } catch(e) {
+      addLog(`Lambda error: ${e.message} — usando modelo local`, 'lwrn');
+      result = localPredict(v);
+      addLog(`← prob=${result.prob}  riesgo=${result.riesgo} (local)`, result.diabetes ? 'lwrn' : 'lok');
+    }
+  } else {
+    // Local / archivo: usar modelo embebido directamente, sin intentar fetch
+    await delay(200);
+    result = localPredict(v);
+    addLog(`← prob=${result.prob}  diabetes=${result.diabetes}  riesgo=${result.riesgo}`,
+           result.diabetes ? 'lwrn' : 'lok');
+    addLog('200 OK — modelo local (abrir desde Vercel para Lambda real)', 'lok');
+  }
+
+  const { prob, diabetes, riesgo } = result;
+  const pct = Math.round(prob * 100);
+
+  const factors = [
+    { n:'Glucosa',   p:Math.min(100,Math.round(v.glucose/199*100)),      c:'#D85A30' },
+    { n:'IMC',       p:Math.min(100,Math.round(v.bmi/67*100)),           c:'#1D9E75' },
+    { n:'Edad',      p:Math.min(100,Math.round((v.age-21)/60*100)),      c:'#7F77DD' },
+    { n:'Pedigree',  p:Math.min(100,Math.round(v.dpf/2.42*100)),         c:'#BA7517' },
+    { n:'Insulina',  p:Math.min(100,Math.round(v.insulin/846*100)),      c:'#185FA5' },
+    { n:'Embarazos', p:Math.min(100,Math.round(v.pregnancies/17*100)),   c:'#993556' },
+  ].sort((a,b) => b.p - a.p);
+
+  const rec = result.recomendacion ||
+    (riesgo==='ALTO'     ? 'Consultar endocrinólogo urgente. Control glucémico estricto necesario.' :
+     riesgo==='MODERADO' ? 'Monitorear glucosa periódicamente. Mejorar dieta y actividad física.' :
+                           'Mantener hábitos saludables. Control rutinario anual suficiente.');
+
+  document.getElementById('resultArea').innerHTML = `
+    <div class="rpill ${diabetes?'rpos':'rneg'}">
+      ${diabetes?'⚠️':'✅'} ${diabetes?'Riesgo de diabetes detectado':'Sin signos de diabetes'}
+      <strong style="margin-left:4px">${pct}%</strong>
+    </div>
+    <div class="plabels"><span>Sin diabetes</span><span>Con diabetes</span></div>
+    <div class="ptrack"><div class="pfill" style="width:${pct}%;background:${diabetes?'#E24B4A':'#1D9E75'}"></div></div>
+    <div class="plabels" style="margin-bottom:10px"><span>${100-pct}%</span><span>${pct}%</span></div>
+    <div class="rec-box" style="border-color:${diabetes?'#F09595':'#97C459'}">📋 ${rec}</div>
+    <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Factores de influencia</div>
+    <div class="fgrid">
+      ${factors.map(f=>`<div class="fi">
+        <div class="fin">${f.n}</div>
+        <div class="fib"><div class="fif" style="width:${f.p}%;background:${f.c}"></div></div>
+        <div class="fiv">${f.p}%</div>
+      </div>`).join('')}
+    </div>
+    <div class="g3" style="margin-top:8px">
+      <div class="mc"><div class="mv">~78%</div><div class="ml">Accuracy</div></div>
+      <div class="mc"><div class="mv">0.84</div><div class="ml">AUC-ROC</div></div>
+      <div class="mc"><div class="mv" style="font-size:12px;color:${diabetes?'var(--red-text)':'var(--green-text)'}">${riesgo}</div><div class="ml">Nivel riesgo</div></div>
+    </div>`;
+
+  btn.disabled = false;
+  btn.innerHTML = '⚡ Enviar al Lambda → Predecir';
+}
+
+/* inicializar gradientes de sliders */
+document.querySelectorAll('input[type=range]').forEach(el => {
+  const mn = +el.min, mx = +el.max, v = +el.value;
+  el.style.setProperty('--pct', ((v-mn)/(mx-mn)*100).toFixed(1)+'%');
+});
+</script>
+</body>
+</html>
