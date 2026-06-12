@@ -1,0 +1,7 @@
+# Práctica 04 — Lambda Vercel
+# El Lambda usa SOLO stdlib de Python (json, math, http)
+# NO requiere instalar ninguna dependencia adicional.
+# Esto permite que el deploy en Vercel sea instantáneo (<50MB).
+
+# Para entrenar el modelo localmente (model.py), instalar:
+#   pip install tensorflow pandas scikit-learn matplotlib joblib numpy

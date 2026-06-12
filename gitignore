@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.env
+venv/
+env/
+
+# Dataset (licencia Kaggle — no subir al repo)
+diabetes.csv
+
+# Archivos generados por model.py (opcionales, pesados)
+diabetes_model.h5
+scaler.pkl
+training_curves.png
+roc_curve.png
+
+# Vercel
+.vercel
+
+# OS
+.DS_Store
+Thumbs.db
